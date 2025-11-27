@@ -1,7 +1,7 @@
 // Import the Layout component to wrap the page content
 import Layout from '../../components/layout';
 // Import the getAllPostIds and getPostData helpers for dynamic routes and post content
-import { getAllPostIds, getPostData } from '../../lib/posts-json';
+import { getAllIds, getData } from '../../lib/data.js';
 import Head from 'next/head';
 import Date from '../../components/date';
 import utilStyles from '../../styles/utils.module.css';
@@ -18,14 +18,14 @@ import utilStyles from '../../styles/utils.module.css';
           <div className={utilStyles.lightText}>
             <div className={utilStyles.dateBG}><Date dateString={postData.date} /></div>
           </div>
-          <div dangerouslySetInnerHTML={{ __html: postData.contentHtml }} />
+          <p>Car: {postData.make} {postData.model}</p>
         </article>
       </Layout>
     );
   }
 // Define getStaticPaths to prerender dynamic routes for all post IDs at build time
 export async function getStaticPaths() {
-    const paths = await getAllPostIds();
+    const paths = await getAllIds();
     return {
       paths,
       fallback: false,
@@ -35,7 +35,7 @@ export async function getStaticPaths() {
 
   export async function getStaticProps({ params }) {
     // Fetch the post data for the given ID at build time
-    const postData = await getPostData(params.id);
+    const postData = await getData(params.id);
    
     return {
       props: {

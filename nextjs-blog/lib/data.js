@@ -1,5 +1,3 @@
-//import fs from 'fs';
-//import path from 'path';
 //use Got instead, really easy to write an async await request to get content of any URL on the internet
 //npm install got
 import got from 'got';
@@ -8,10 +6,10 @@ import got from 'got';
 //const dataDirectory = path.join(process.cwd(), 'data');
 
 //define URL for REST enndpoint
-const dataURL = "https://dev-srjc-f2025-cs-55-13.pantheonsite.io/wp-json/twentytwentyone-child/v1/latest-posts/1";
+const dataURL = "https://dev-srjc-f2025-cs-55-13.pantheonsite.io/wp-json/wp/v2/car";
 
 // Returns an array of objects with params containing post IDs, used for dynamic routing in Next.js
-export async function getAllPostIds() { //assignment video list as getAllIds() instead of getAllPostIds()
+export async function getAllIds() {
     // Build absolute path to the JSON data file under the local `data` directory
     //const filePath = path.join(dataDirectory, 'posts.json');
     // Build absolute path to the JSON data file under the local `data` directory
@@ -43,7 +41,7 @@ export async function getAllPostIds() { //assignment video list as getAllIds() i
     return jsonObject.map(item => {
         return {
             params: {
-                id: item.ID.toString()
+                id: item.id.toString()
           }
         }
       });
@@ -51,7 +49,7 @@ export async function getAllPostIds() { //assignment video list as getAllIds() i
 
 
 // Return posts from `data/posts.json`, sorted by title and normalized for display
-export async function getSortedPostsData() { //assingment video list as getSortedList() instead of getSortedPostsData()
+export async function getSortedList() {
     // Build absolute path to the JSON data file under the local `data` directory
     //const filePath = path.join(dataDirectory, 'posts.json');
     // Read the entire JSON file contents into memory as a UTF-8 string
@@ -72,21 +70,22 @@ export async function getSortedPostsData() { //assingment video list as getSorte
 
     // Sort posts by title using locale-aware string comparison
     jsonObject.sort(function(a, b){
-        return a.post_title.localeCompare(b.post_title);
+        return a.title.rendered.localeCompare(b.title.rendered);
     }); 
     // Normalize and shape the objects returned to the rest of the app
     return jsonObject.map(item =>{
         return{
-            id: item.ID.toString(),
-            title: item.post_title,
-            date: item.post_date ? item.post_date.split(' ')[0] : '', // Truncate at space
-            contentHtml: item.post_content
+            id: item.id.toString(),
+            title: item.title.rendered,
+            make: item.acf.car_make,
+            model: item.acf.car_model,
+            date: item.date ? item.date.split(' ')[0] : ''
         }
     });
 }
 // The getPostData function retrieves a single post object from the posts.json file by matching the given id.
 // If a post with the specified id is found, it returns the post object; otherwise, it returns a default "Not Found" object.
-export async function getPostData (id) {
+export async function getData (id) {
     // Read posts.json synchronously and return the post matching `id`; function does not need to be async
     // Note: `pages/posts/[id].js` awaits this call, but since this is synchronous, `await` is unnecessary (harmless) and can be removed
     //const filePath = path.join(dataDirectory, 'posts.json');
@@ -105,22 +104,24 @@ export async function getPostData (id) {
     const jsonObject = JSON.parse(jsonString.body);
 
     const objReturned = jsonObject.filter(obj => {
-        return obj.ID.toString() === id;
+        return obj.id.toString() === id;
     });
         if (objReturned.length === 0) {
             return {
                 id: id,
                 title: 'Not Found',
                 date: '',
-                contentHtml: 'Not Found'
+                make: '',
+                model: ''
             }
         } else{
             // Normalize the WordPress response
             return {
-                id: objReturned[0].ID.toString(),
-                title: objReturned[0].post_title || 'Not Found',
-                date: objReturned[0].post_date ? objReturned[0].post_date.split(' ')[0] : '', // Truncate at space
-                contentHtml: objReturned[0].post_content || 'Not Found'
+                id: objReturned[0].id.toString(),
+                title: objReturned[0].title.rendered || 'Not Found',
+                date: objReturned[0].date ? objReturned[0].date.split(' ')[0] : '', // Truncate at space
+                make: objReturned[0].acf.car_make,
+                model: objReturned[0].acf.car_model
             };
         }
     }
